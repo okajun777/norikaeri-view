@@ -9,6 +9,8 @@ from pathlib import Path
 
 from config import BASE_DIR, SEGMENT_COLORS
 from db import get_trip, init_db, list_trips
+from line_colors import JR_LINE_COLORS, LINE_COLORS, PRIVATE_LINE_COLORS
+from trip_service import ensure_trip_geometries
 
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATE_PATH = BASE_DIR / "templates" / "view_site.html"
@@ -34,13 +36,16 @@ def export_view_site(out_dir: Path | None = None) -> Path:
     for row in list_trips():
         trip = get_trip(row["id"])
         if trip:
-            trips.append(trip)
+            trips.append(ensure_trip_geometries(trip))
 
     exported_at = datetime.now(JST).strftime("%Y-%m-%d %H:%M")
     view_data = {
         "trips": trips,
         "meta": {
             "segment_colors": SEGMENT_COLORS,
+            "line_colors": LINE_COLORS,
+            "jr_line_colors": JR_LINE_COLORS,
+            "private_line_colors": PRIVATE_LINE_COLORS,
             "home": load_home(),
             "view_only": True,
             "exported_at": exported_at,
@@ -56,7 +61,7 @@ def export_view_site(out_dir: Path | None = None) -> Path:
     (out / "index.html").write_text(html, encoding="utf-8")
     (out / ".nojekyll").write_text("", encoding="utf-8")
 
-    for name in ("style.css", "map-ui.js", "destinations.js"):
+    for name in ("style.css", "map-ui.js", "trip-map-draw.js", "destinations.js"):
         shutil.copy2(STATIC_DIR / name, out / name)
 
     return out

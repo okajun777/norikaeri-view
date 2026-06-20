@@ -6,6 +6,9 @@ let tripColors = [
   "#e63946", "#457b9d", "#2a9d8f", "#e9c46a",
   "#f4a261", "#264653", "#8338ec", "#fb5607",
 ];
+let lineColorMap = {};
+let jrLineColorMap = {};
+let privateLineColorMap = {};
 const tripColorById = new Map();
 
 async function api(path, options = {}) {
@@ -50,8 +53,6 @@ function staticApi(path, options = {}) {
 
 const MAP_WHEEL_ZOOM_STEP = 1 / 18;
 const MAP_WHEEL_PX_PER_ZOOM = 180;
-const MARKER_OVERLAP_THRESHOLD_M = 50;
-const MARKER_SEPARATION_M = 80;
 
 function initMap() {
   map = L.map("map", {
@@ -71,95 +72,6 @@ function initMap() {
     if (map) map.invalidateSize();
   });
   loadHomeMarker(map);
-}
-
-function haversineM(lat1, lon1, lat2, lon2) {
-  const r = 6371000;
-  const p1 = (lat1 * Math.PI) / 180;
-  const p2 = (lat2 * Math.PI) / 180;
-  const dp = ((lat2 - lat1) * Math.PI) / 180;
-  const dl = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dp / 2) ** 2 +
-    Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
-  return 2 * r * Math.asin(Math.sqrt(a));
-}
-
-function parseTime(value) {
-  if (!value) return null;
-  const match = String(value).match(/^(\d{1,2}):(\d{2})/);
-  if (!match) return null;
-  return Number(match[1]) * 60 + Number(match[2]);
-}
-
-function shiftLonMeters(lat, lon, meters) {
-  const dLon =
-    (meters / (6371000 * Math.cos((lat * Math.PI) / 180))) * (180 / Math.PI);
-  return [lat, lon + dLon];
-}
-
-function clusterMarkers(markers, thresholdM) {
-  const parent = markers.map((_, i) => i);
-  const find = (i) => {
-    while (parent[i] !== i) {
-      parent[i] = parent[parent[i]];
-      i = parent[i];
-    }
-    return i;
-  };
-  const union = (a, b) => {
-    parent[find(a)] = find(b);
-  };
-
-  for (let i = 0; i < markers.length; i++) {
-    for (let j = i + 1; j < markers.length; j++) {
-      if (
-        haversineM(markers[i].lat, markers[i].lon, markers[j].lat, markers[j].lon) <
-        thresholdM
-      ) {
-        union(i, j);
-      }
-    }
-  }
-
-  const groups = new Map();
-  markers.forEach((marker, i) => {
-    const root = find(i);
-    if (!groups.has(root)) groups.set(root, []);
-    groups.get(root).push(marker);
-  });
-  return [...groups.values()];
-}
-
-function applyMarkerSpread(markers) {
-  const spread = markers.map((marker) => ({
-    ...marker,
-    displayLat: marker.lat,
-    displayLon: marker.lon,
-  }));
-
-  for (const cluster of clusterMarkers(spread, MARKER_OVERLAP_THRESHOLD_M)) {
-    if (cluster.length <= 1) continue;
-    cluster.sort((a, b) => {
-      const ta = a.sortKey ?? 0;
-      const tb = b.sortKey ?? 0;
-      return ta - tb || String(a.id).localeCompare(String(b.id));
-    });
-
-    const n = cluster.length;
-    for (let i = 0; i < n; i++) {
-      const slot = i - (n - 1) / 2;
-      const offsetM = slot * MARKER_SEPARATION_M;
-      const target = spread.find((m) => m.id === cluster[i].id);
-      [target.displayLat, target.displayLon] = shiftLonMeters(
-        target.lat,
-        target.lon,
-        offsetM
-      );
-    }
-  }
-
-  return spread;
 }
 
 function assignTripColors(trips) {
@@ -215,6 +127,36 @@ function showDestinationDetail(entry) {
   openMapDetailPanel(panel);
 }
 
+function showSegmentDetail(seg, index, allSegments) {
+  const panel = document.getElementById("destination-detail");
+  const title = document.getElementById("detail-title");
+  const body = document.getElementById("detail-body");
+  title.textContent = `区間 ${index + 1}: ${seg.from_station} → ${seg.to_station}${
+    seg.line_name ? `（${seg.line_name}）` : ""
+  }`;
+  body.innerHTML = `
+    <dt>出発</dt><dd>${seg.depart_time || "-"}</dd>
+    <dt>到着</dt><dd>${seg.arrive_time || "-"}</dd>
+    <dt>路線</dt><dd>${seg.line_name || "（未特定）"}</dd>
+    <dt>事業者</dt><dd>${seg.operator || "-"}</dd>
+  `;
+  openMapDetailPanel(panel);
+}
+
+function showTransferDetail(transfer) {
+  const panel = document.getElementById("destination-detail");
+  const title = document.getElementById("detail-title");
+  const body = document.getElementById("detail-body");
+  title.textContent = `乗換 ${transfer.seq}: ${transfer.name}`;
+  body.innerHTML = `
+    <dt>区間</dt><dd>${transfer.fromSegment} → ${transfer.toSegment}</dd>
+    <dt>降車</dt><dd>${transfer.prev.to_station} ${transfer.prev.arrive_time || ""}</dd>
+    <dt>乗車</dt><dd>${transfer.next.from_station} ${transfer.next.depart_time || ""}</dd>
+    <dt>路線</dt><dd>${transfer.prev.line_name || "-"} → ${transfer.next.line_name || "-"}</dd>
+  `;
+  openMapDetailPanel(panel);
+}
+
 function renderDestinationList(entries) {
   const list = document.getElementById("destination-list");
   const hint = document.getElementById("destination-hint");
@@ -224,7 +166,7 @@ function renderDestinationList(entries) {
     if (checkedTripIds.size) {
       hint.textContent = "チェックした記録に行った場所がありません";
     } else {
-      hint.textContent = "記録にチェックを入れると 📍 が地図に表示されます";
+      hint.textContent = "記録にチェックを入れると 📍 と路線が地図に表示されます";
     }
     return;
   }
@@ -283,57 +225,42 @@ function renderDestinationList(entries) {
   });
 }
 
-function drawDestinationMarkers(entries) {
-  layerGroup.clearLayers();
-  const bounds = [];
-  const markers = [];
+function buildTripDrawEntries(trips) {
+  return [...trips]
+    .filter((t) => checkedTripIds.has(t.id))
+    .sort((a, b) => String(a.trip_date).localeCompare(String(b.trip_date)))
+    .map((trip) => ({
+      trip,
+      tripLabel: trip.title || trip.trip_date,
+      tripColor: tripColor(trip.id),
+    }));
+}
 
-  entries.forEach((entry) => {
-    const { dest, index, tripId } = entry;
-    if (dest.lat == null || dest.lon == null) return;
-    markers.push({
-      id: `dest-${tripId}-${index}`,
-      lat: dest.lat,
-      lon: dest.lon,
-      sortKey: parseTime(dest.arrive_time) ?? index,
-      entry,
-    });
+function drawCheckedMap(trips) {
+  const listEntries = buildDestinationEntries(trips);
+  renderDestinationList(listEntries);
+
+  const pointCount = TripMapDraw.drawTrips({
+    map,
+    layerGroup,
+    tripEntries: buildTripDrawEntries(trips),
+    palette: tripColors,
+    lineColorMap,
+    jrLineColorMap,
+    privateLineColorMap,
+    createDestinationIcon,
+    onSegmentDetail: showSegmentDetail,
+    onDestinationDetail: showDestinationDetail,
+    onTransferDetail: showTransferDetail,
   });
 
-  applyMarkerSpread(markers).forEach((marker) => {
-    const pos = [marker.displayLat, marker.displayLon];
-    bounds.push(pos);
-    const { dest, index, tripLabel, tripId } = marker.entry;
-    const time = formatDestinationTime(dest);
-    const place = dest.resolved_name || dest.name;
-    const placeNote = dest.geo_source === "station" ? "（最寄り駅）" : "";
-    const tripNote = checkedTripIds.size > 1 ? `<br><small>${tripLabel}</small>` : "";
-    const color = tripColor(tripId);
-
-    L.marker(pos, {
-      icon: createDestinationIcon(index + 1, color),
-      zIndexOffset: 1000,
-    })
-      .bindPopup(
-        `<b>📍 ${dest.name}</b><br>${place}${placeNote}` +
-          (time ? `<br>${time}` : "") +
-          tripNote
-      )
-      .on("click", () => showDestinationDetail(marker.entry))
-      .addTo(layerGroup);
-  });
-
-  if (bounds.length) {
-    map.fitBounds(bounds, { padding: [48, 48], maxZoom: 14 });
-  } else {
+  if (!pointCount) {
     document.getElementById("destination-detail").classList.add("hidden");
+    return;
   }
-
-  renderDestinationList(entries);
-
-  const firstWithGeo = entries.find((e) => e.dest.lat != null && e.dest.lon != null);
-  if (firstWithGeo) {
-    showDestinationDetail(firstWithGeo);
+  const first = listEntries.find((e) => e.dest.lat != null && e.dest.lon != null);
+  if (first) {
+    showDestinationDetail(first);
   }
 }
 
@@ -374,7 +301,7 @@ async function redrawCheckedTrips() {
     renderDestinationList([]);
     document.getElementById("destination-detail").classList.add("hidden");
     document.getElementById("destination-hint").textContent =
-      "記録にチェックを入れると 📍 が地図に表示されます";
+      "記録にチェックを入れると 📍 と路線が地図に表示されます";
     updateTripListHighlight();
     return;
   }
@@ -383,7 +310,7 @@ async function redrawCheckedTrips() {
   for (const tripId of checkedTripIds) {
     trips.push(await fetchTripDetails(tripId));
   }
-  drawDestinationMarkers(buildDestinationEntries(trips));
+  drawCheckedMap(trips);
   updateTripListHighlight();
 }
 
@@ -410,7 +337,7 @@ function clearView() {
   renderDestinationList([]);
   document.getElementById("destination-detail").classList.add("hidden");
   document.getElementById("destination-hint").textContent =
-    "記録にチェックを入れると 📍 が地図に表示されます";
+    "記録にチェックを入れると 📍 と路線が地図に表示されます";
 }
 
 async function refreshTrips() {
@@ -455,10 +382,11 @@ async function refreshTrips() {
 
     const body = document.createElement("div");
     body.className = "trip-item-body";
+    const segCount = trip.segment_count || 0;
     const destCount = trip.destination_count || 0;
     body.innerHTML =
       `<strong>${trip.title || trip.trip_date}</strong>` +
-      `<div class="trip-meta">${trip.trip_date} · 📍 ${destCount} か所</div>`;
+      `<div class="trip-meta">${trip.trip_date} · ${segCount}区間 · 📍 ${destCount} か所</div>`;
 
     label.appendChild(colorDot);
     label.appendChild(checkbox);
@@ -484,6 +412,9 @@ async function init() {
     if (meta.segment_colors?.length) {
       tripColors = meta.segment_colors;
     }
+    lineColorMap = meta.line_colors || {};
+    jrLineColorMap = meta.jr_line_colors || {};
+    privateLineColorMap = meta.private_line_colors || {};
     await refreshTrips();
   } catch (err) {
     alert(err.message);

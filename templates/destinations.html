@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>行った場所 — 乗り換え記録</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/style.css?v=3">
+  <link rel="stylesheet" href="/static/style.css?v=4">
 </head>
 <body>
   <header>
@@ -22,7 +22,7 @@
 
       <section class="panel">
         <h2>行った場所</h2>
-        <p class="hint" id="destination-hint">記録にチェックを入れると 📍 が地図に表示されます（複数可）</p>
+        <p class="hint" id="destination-hint">記録にチェックを入れると 📍 と路線が地図に表示されます（複数可）</p>
         <ul id="destination-list" class="destination-view-list"></ul>
       </section>
     </aside>
@@ -48,6 +48,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="/static/map-ui.js?v=3"></script>
-  <script src="/static/destinations.js?v=8"></script>
+  <script src="/static/trip-map-draw.js?v=1"></script>
+  <script src="/static/destinations.js?v=9"></script>
 </body>
 </html>

@@ -677,36 +677,209 @@ button:disabled {
 }
 
 @media (max-width: 900px) {
+  :root {
+    --header-height: 48px;
+    --mobile-list-max: 32dvh;
+  }
+
   html,
   body {
-    overflow: auto;
+    overflow: hidden;
+    height: 100%;
   }
 
   header {
-    position: static;
-    height: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    padding: 0.35rem 0.65rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  header h1 {
+    font-size: 0.88rem;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  header p {
+    font-size: 0.6rem;
+    line-height: 1.15;
+    margin-top: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .layout {
-    margin-top: 0;
-    height: auto;
+    display: flex;
+    flex-direction: column;
+    margin-top: var(--header-height);
+    height: calc(100vh - var(--header-height));
+    height: calc(100dvh - var(--header-height));
+    overflow: hidden;
   }
 
   .sidebar {
-    position: static;
-    width: auto;
+    position: relative;
+    flex: 0 0 auto;
+    width: 100%;
+    max-height: var(--mobile-list-max);
     height: auto;
-    overflow: visible;
+    padding: 0.35rem 0.45rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    border-right: none;
+    border-bottom: 1px solid #d9e2ec;
+  }
+
+  .panel {
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .panel h2 {
+    margin: 0 0 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #486581;
+  }
+
+  .hint {
+    margin: 0 0 0.2rem;
+    font-size: 0.6rem;
+    line-height: 1.25;
+  }
+
+  #trip-list li {
+    gap: 0.25rem;
+    padding: 0.22rem 0.28rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+
+  #trip-list li .trip-item-body strong {
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .trip-check-label {
+    gap: 0.28rem;
+  }
+
+  .trip-map-check {
+    margin: 0.1rem 0 0;
+    transform: scale(0.78);
+    transform-origin: top left;
+  }
+
+  .trip-color-dot {
+    width: 7px;
+    height: 7px;
+  }
+
+  .trip-check-label .trip-color-dot {
+    margin-top: 0.15rem;
+  }
+
+  .trip-meta {
+    font-size: 0.58rem;
+    margin-top: 0.05rem;
+  }
+
+  #destination-list {
+    margin-top: 0.2rem;
+  }
+
+  .destination-view-list li {
+    padding: 0.22rem 0.28rem;
+    font-size: 0.68rem;
+    line-height: 1.2;
+  }
+
+  .destination-view-list li.dest-list-trip-header {
+    gap: 0.28rem;
+    padding: 0.18rem 0.28rem 0.1rem;
+    font-size: 0.6rem;
+    border-left-width: 2px;
+  }
+
+  .destination-view-list li.dest-list-colored {
+    border-left-width: 2px;
+    padding-left: 0.35rem;
+  }
+
+  .dest-list-meta,
+  .dest-list-memo {
+    margin-top: 0.05rem;
+    font-size: 0.58rem;
   }
 
   .map-area {
     position: relative;
-    left: 0;
-    top: 0;
-    height: 50vh;
+    flex: 1 1 0;
+    width: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   #map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
     height: 100%;
+  }
+
+  .segment-detail {
+    right: 0.4rem;
+    bottom: 2.4rem;
+    width: min(220px, calc(100% - 0.75rem));
+    padding: 0.45rem 0.55rem 0.45rem 0.5rem;
+    border-radius: 6px;
+  }
+
+  .segment-detail h3 {
+    margin: 0 1.5rem 0.25rem 0;
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+
+  .segment-detail dl {
+    font-size: 0.65rem;
+  }
+
+  .segment-detail dt {
+    margin-top: 0.2rem;
+  }
+
+  .detail-close-btn {
+    top: 0.2rem;
+    right: 0.25rem;
+    font-size: 0.95rem;
+  }
+
+  .map-toolbar {
+    right: 0.4rem;
+    bottom: 0.4rem;
+    gap: 0.25rem;
+  }
+
+  .map-toolbar-btn {
+    min-width: auto;
+    padding: 0.28rem 0.45rem;
+    font-size: 0.65rem;
+    border-radius: 6px;
+  }
+
+  .map-view-btn {
+    padding: 0.28rem 0.5rem;
+    font-size: 0.68rem;
   }
 }

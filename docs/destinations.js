@@ -71,6 +71,9 @@ function initMap() {
   requestAnimationFrame(() => {
     if (map) map.invalidateSize();
   });
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+  }, 300);
   loadHomeMarker(map);
 }
 

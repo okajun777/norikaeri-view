@@ -773,6 +773,8 @@ button:disabled {
 
   .sidebar {
     position: relative;
+    top: auto;
+    left: auto;
     flex: 0 0 auto;
     width: 100%;
     max-height: var(--mobile-list-max);
@@ -886,6 +888,10 @@ button:disabled {
 
   .map-area {
     position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
     flex: 1 1 0;
     width: 100%;
     min-height: 0;

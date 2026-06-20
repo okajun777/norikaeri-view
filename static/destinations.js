@@ -10,6 +10,10 @@ let lineColorMap = {};
 let jrLineColorMap = {};
 let privateLineColorMap = {};
 const tripColorById = new Map();
+const SHOW_ROUTES_KEY = "viewShowRoutes";
+const SHOW_DESTINATIONS_KEY = "viewShowDestinations";
+let showRoutesOnMap = localStorage.getItem(SHOW_ROUTES_KEY) !== "false";
+let showDestinationsOnMap = localStorage.getItem(SHOW_DESTINATIONS_KEY) !== "false";
 
 async function api(path, options = {}) {
   if (window.VIEW_DATA) {
@@ -169,7 +173,7 @@ function renderDestinationList(entries) {
     if (checkedTripIds.size) {
       hint.textContent = "チェックした記録に行った場所がありません";
     } else {
-      hint.textContent = "記録にチェックを入れると 📍 と路線が地図に表示されます";
+      hint.textContent = "記録を選び、路線・📍 の表示を切り替えてください";
     }
     return;
   }
@@ -255,6 +259,8 @@ function drawCheckedMap(trips) {
     onSegmentDetail: showSegmentDetail,
     onDestinationDetail: showDestinationDetail,
     onTransferDetail: showTransferDetail,
+    showRoutes: showRoutesOnMap,
+    showDestinations: showDestinationsOnMap,
   });
 
   if (!pointCount) {
@@ -304,7 +310,7 @@ async function redrawCheckedTrips() {
     renderDestinationList([]);
     document.getElementById("destination-detail").classList.add("hidden");
     document.getElementById("destination-hint").textContent =
-      "記録にチェックを入れると 📍 と路線が地図に表示されます";
+      "記録を選び、路線・📍 の表示を切り替えてください";
     updateTripListHighlight();
     return;
   }
@@ -407,9 +413,34 @@ async function refreshTrips() {
   await redrawCheckedTrips();
 }
 
+function updateLayerToggleButtons() {
+  const routesCheck = document.getElementById("show-routes-check");
+  const destCheck = document.getElementById("show-destinations-check");
+  if (routesCheck) routesCheck.checked = showRoutesOnMap;
+  if (destCheck) destCheck.checked = showDestinationsOnMap;
+}
+
+function initLayerToggles() {
+  const routesCheck = document.getElementById("show-routes-check");
+  const destCheck = document.getElementById("show-destinations-check");
+  updateLayerToggleButtons();
+
+  routesCheck?.addEventListener("change", async (e) => {
+    showRoutesOnMap = e.target.checked;
+    localStorage.setItem(SHOW_ROUTES_KEY, showRoutesOnMap ? "true" : "false");
+    await redrawCheckedTrips();
+  });
+  destCheck?.addEventListener("change", async (e) => {
+    showDestinationsOnMap = e.target.checked;
+    localStorage.setItem(SHOW_DESTINATIONS_KEY, showDestinationsOnMap ? "true" : "false");
+    await redrawCheckedTrips();
+  });
+}
+
 async function init() {
   initMap();
   initMapToolbar("destinations");
+  initLayerToggles();
   try {
     const meta = window.VIEW_DATA?.meta ?? (await fetch("/api/meta").then((res) => res.json()));
     if (meta.segment_colors?.length) {

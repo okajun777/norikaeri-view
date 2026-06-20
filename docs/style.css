@@ -339,6 +339,35 @@ button:disabled {
   cursor: pointer;
 }
 
+.map-layer-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  margin: 0 0 0.45rem;
+}
+
+.layer-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.18rem 0.4rem;
+  border: 1px solid #cbd2d9;
+  border-radius: 999px;
+  background: #f8fafc;
+  font-size: 0.72rem;
+  color: #334e68;
+  cursor: pointer;
+  user-select: none;
+}
+
+.layer-map-check {
+  width: auto;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
 #trip-list .remove-trip-btn {
   width: auto;
   margin: 0;
@@ -778,6 +807,21 @@ button:disabled {
     margin: 0.1rem 0 0;
     transform: scale(0.78);
     transform-origin: top left;
+  }
+
+  .map-layer-toggles {
+    gap: 0.25rem 0.35rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .layer-toggle {
+    padding: 0.12rem 0.32rem;
+    font-size: 0.62rem;
+  }
+
+  .layer-map-check {
+    transform: scale(0.78);
+    transform-origin: center;
   }
 
   .trip-color-dot {

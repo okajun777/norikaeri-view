@@ -346,7 +346,7 @@ function clearView() {
   renderDestinationList([]);
   document.getElementById("destination-detail").classList.add("hidden");
   document.getElementById("destination-hint").textContent =
-    "記録にチェックを入れると 📍 と路線が地図に表示されます";
+    "記録を選び、路線・📍 の表示を切り替えてください";
 }
 
 async function refreshTrips() {

@@ -711,6 +711,24 @@ button:disabled {
     --mobile-list-max: 32dvh;
   }
 
+  body.page-destinations {
+    --header-height: 0px;
+    --mobile-list-max: 30dvh;
+  }
+
+  body.page-destinations header {
+    display: none;
+  }
+
+  body.page-destinations .layout {
+    margin-top: 0;
+    height: 100dvh;
+  }
+
+  body.page-destinations #destination-hint {
+    display: none;
+  }
+
   html,
   body {
     overflow: hidden;

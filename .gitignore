@@ -1,0 +1,11 @@
+data/trips.db
+data/trips.db.*
+data/stations.json
+data/lines.json
+data/geometries/
+data/exports/
+view-site/
+__pycache__/
+*.pyc
+.venv/
+.env

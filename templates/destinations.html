@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行った場所 — 乗り換え記録</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/static/style.css?v=3">
+</head>
+<body>
+  <header>
+    <h1>行った場所</h1>
+    <p>📍 閲覧専用{% if view_only %} · 同じWi‑Fi内の家族向け{% endif %}</p>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="panel">
+        <h2>記録一覧</h2>
+        <ul id="trip-list"></ul>
+      </section>
+
+      <section class="panel">
+        <h2>行った場所</h2>
+        <p class="hint" id="destination-hint">記録にチェックを入れると 📍 が地図に表示されます（複数可）</p>
+        <ul id="destination-list" class="destination-view-list"></ul>
+      </section>
+    </aside>
+
+    <section class="map-area">
+      <div id="map"></div>
+      <div id="destination-detail" class="segment-detail hidden" data-map-detail>
+        <button type="button" class="detail-close-btn" title="詳細を閉じる" aria-label="詳細を閉じる">×</button>
+        <h3 id="detail-title"></h3>
+        <dl id="detail-body"></dl>
+      </div>
+      <div class="map-toolbar">
+        <div class="map-view-switch" role="group" aria-label="表示切替">
+          {% if not view_only %}
+          <a href="/" class="map-view-btn" data-view="segments">区間</a>
+          {% endif %}
+          <a href="/destinations" class="map-view-btn" data-view="destinations">📍</a>
+        </div>
+        <button type="button" id="detail-toggle-btn" class="map-toolbar-btn" aria-pressed="true">詳細 ON</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/map-ui.js?v=3"></script>
+  <script src="/static/destinations.js?v=8"></script>
+</body>
+</html>

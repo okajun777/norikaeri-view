@@ -62,6 +62,17 @@ function namesSimilar(a, b) {
   return na.includes(nb) || nb.includes(na);
 }
 
+const LINE_WEIGHT = 6;
+const LINE_OVERLAP_BOTTOM_FACTOR = 2.25;
+const LINE_SAME_LINE_TOP_COLOR = "#ffffff";
+const LINE_OFFSET_SEP_M = 80;
+const LINE_OVERLAP_THRESHOLD_M = 90;
+const LINE_OVERLAP_RATIO = 0.2;
+const LINE_JUNCTION_MAX_WINDOW = 20;
+const LINE_JUNCTION_MIN_RATIO = 0.15;
+const MARKER_OVERLAP_THRESHOLD_M = 50;
+const MARKER_SEPARATION_M = 100;
+
 function pointNearGeometry(lon, lat, geom, thresholdM) {
   for (const [olon, olat] of geom) {
     if (haversineM(lat, lon, olat, olon) < thresholdM) return true;
@@ -730,7 +741,7 @@ function createTransferIcon(seq) {
         const i = marker.index;
         const icon = opts.createDestinationIcon
           ? opts.createDestinationIcon(i + 1, marker.tripColor)
-          : createDestinationIcon(i + 1);
+          : createTransferIcon(i + 1);
         const time =
           dest.arrive_time && dest.depart_time
             ? `${dest.arrive_time} - ${dest.depart_time}`

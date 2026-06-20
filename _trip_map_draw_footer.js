@@ -171,7 +171,7 @@
         const i = marker.index;
         const icon = opts.createDestinationIcon
           ? opts.createDestinationIcon(i + 1, marker.tripColor)
-          : createDestinationIcon(i + 1);
+          : createTransferIcon(i + 1);
         const time =
           dest.arrive_time && dest.depart_time
             ? `${dest.arrive_time} - ${dest.depart_time}`

@@ -8,8 +8,15 @@ ns_start = dist_end
 ns_end = next(i for i, l in enumerate(app_lines) if l.startswith("function isDuplicateDestAndStation"))
 draw_start = next(i for i, l in enumerate(app_lines) if l.startswith("function pointNearGeometry"))
 draw_end = next(i for i, l in enumerate(app_lines) if l.startswith("function showTransferDetail"))
+const_start = next(i for i, l in enumerate(app_lines) if l.startswith("const LINE_WEIGHT"))
+const_end = draw_start
 
-block = "\n".join(app_lines[dist_start:dist_end] + app_lines[ns_start:ns_end] + app_lines[draw_start:draw_end])
+block = "\n".join(
+    app_lines[dist_start:dist_end]
+    + app_lines[ns_start:ns_end]
+    + app_lines[const_start:const_end]
+    + app_lines[draw_start:draw_end]
+)
 block = block.replace(
     "function drawSegmentPolylines(\n  seg,\n  segIndex,\n  segments,\n  drawGeom,\n  color,\n  distText,\n  layerGroup\n)",
     "function drawSegmentPolylines(\n  seg,\n  segIndex,\n  segments,\n  drawGeom,\n  color,\n  distText,\n  layerGroup,\n  onSegmentDetail\n)",
